@@ -43,7 +43,7 @@ unsigned long activeIntervalDuration = TIME_2_HOURS;
 unsigned long elapsedTimeInState = 0; // Tracks accrued time in active state
 
 // --- Servo Positions ---
-const int POS_ON = 90;
+const int POS_ON = 88;
 const int POS_OFF = -15;
 
 // --- Mode & State Definitions ---
@@ -168,19 +168,11 @@ void loop() {
         break;
     }
   } 
-  // Delay Modes (1H, 3H, 5H, 7H) -> Transition to CONTINUOUS cycling loop after initial ON duration completes
-  else if (currentMode == MODE_ONE_HOUR_DELAY || currentMode == MODE_TIMER_DELAY || 
-           currentMode == MODE_FIVE_HOUR_DELAY || currentMode == MODE_SEVEN_HOUR_DELAY) {
-    
-    // Determine target delay limit based on active mode
-    unsigned long targetDelay = ONE_HOUR;
-    if (currentMode == MODE_TIMER_DELAY) targetDelay = THREE_HOURS;
-    else if (currentMode == MODE_FIVE_HOUR_DELAY) targetDelay = FIVE_HOURS;
-    else if (currentMode == MODE_SEVEN_HOUR_DELAY) targetDelay = SEVEN_HOURS;
-
+  // 1-Hour Delay Mode
+  else if (currentMode == MODE_ONE_HOUR_DELAY) {
     switch (currentState) {
       case STATE_DELAY_WAIT:
-        if (elapsedTimeInState >= targetDelay) {
+        if (elapsedTimeInState >= ONE_HOUR) {
           setServoPosition(POS_ON);
           currentState = STATE_DELAY_ON;
           elapsedTimeInState = 0;
@@ -190,15 +182,72 @@ void loop() {
 
       case STATE_DELAY_ON:
         if (elapsedTimeInState >= activeOnDuration) {
-          // Instead of stopping, transition into regular continuous OFF state using configured interval
-          setServoPosition(POS_OFF);
-          currentMode = MODE_CONTINUOUS;  // Switch to continuous mode for regular looping
-          currentState = STATE_OFF;
+          stopProcess();
+          Serial1.println(F("1H_DELAY_COMPLETE"));
+          Serial.println(F("1H_DELAY_COMPLETE"));
+        }
+        break;
+    }
+  }
+  // 3-Hour Delay Mode
+  else if (currentMode == MODE_TIMER_DELAY) {
+    switch (currentState) {
+      case STATE_DELAY_WAIT:
+        if (elapsedTimeInState >= THREE_HOURS) {
+          setServoPosition(POS_ON);
+          currentState = STATE_DELAY_ON;
           elapsedTimeInState = 0;
           saveSystemState();
-          
-          Serial1.println(F("DELAY_COMPLETE_TRANSITIONING_TO_CONTINUOUS"));
-          Serial.println(F("DELAY_COMPLETE_TRANSITIONING_TO_CONTINUOUS"));
+        }
+        break;
+
+      case STATE_DELAY_ON:
+        if (elapsedTimeInState >= activeOnDuration) {
+          stopProcess();
+          Serial1.println(F("TIMER_3H_DELAY_COMPLETE"));
+          Serial.println(F("TIMER_3H_DELAY_COMPLETE"));
+        }
+        break;
+    }
+  }
+  // 5-Hour Delay Mode
+  else if (currentMode == MODE_FIVE_HOUR_DELAY) {
+    switch (currentState) {
+      case STATE_DELAY_WAIT:
+        if (elapsedTimeInState >= FIVE_HOURS) {
+          setServoPosition(POS_ON);
+          currentState = STATE_DELAY_ON;
+          elapsedTimeInState = 0;
+          saveSystemState();
+        }
+        break;
+
+      case STATE_DELAY_ON:
+        if (elapsedTimeInState >= activeOnDuration) {
+          stopProcess();
+          Serial1.println(F("FIVE_HOUR_DELAY_COMPLETE"));
+          Serial.println(F("FIVE_HOUR_DELAY_COMPLETE"));
+        }
+        break;
+    }
+  }
+  // 7-Hour Delay Mode
+  else if (currentMode == MODE_SEVEN_HOUR_DELAY) {
+    switch (currentState) {
+      case STATE_DELAY_WAIT:
+        if (elapsedTimeInState >= SEVEN_HOURS) {
+          setServoPosition(POS_ON);
+          currentState = STATE_DELAY_ON;
+          elapsedTimeInState = 0;
+          saveSystemState();
+        }
+        break;
+
+      case STATE_DELAY_ON:
+        if (elapsedTimeInState >= activeOnDuration) {
+          stopProcess();
+          Serial1.println(F("7H_DELAY_COMPLETE"));
+          Serial.println(F("7H_DELAY_COMPLETE"));
         }
         break;
     }
